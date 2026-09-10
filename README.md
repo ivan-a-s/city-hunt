@@ -7,16 +7,26 @@ works on a phone.
 
 ## Playing
 
-Choose a **region** (the world, a continent, or any of 236 countries), how many
-**cities to find**, and whether they should be the largest exactly or a random
-draw from the top 20/40/60. A *capital cities only* option restricts the pool to
-capitals.
+Two game modes:
 
-Tap the globe to drop a pin, then **Guess**. Scoring is exponential in the
-distance you miss by, with the scale tied to the size of the region, so a round
-inside one country demands far more precision than a world round. 1000 points
-per city is a bullseye. Best scores are kept per settings combination in the
-browser's local storage.
+- **Click the city I name.** A city is named at the top; tap the globe to drop a
+  pin, then **Guess**. Scoring is exponential in the distance you miss by, with
+  the scale tied to the size of the region, so a round inside one country demands
+  far more precision than a world round. 1000 points for a bullseye.
+- **Name the cities I mark.** Every city in the set appears as a red dot. Type
+  names into the box; each correct one turns its dot green and labels it. The
+  clock allows a fixed number of seconds per city (15 by default, or no limit),
+  spent as one shared budget across the whole set. Anything still unnamed when
+  the time goes is revealed in amber. 1000 points per city named.
+
+Both modes share the same selection: a **world region** (the world or one of six
+continents), optionally narrowed to a single **country** within it; how many
+**cities**; and whether they should be the largest exactly or a random draw from
+the top 20/40/60. A *capital cities only* option restricts the pool to capitals.
+
+Typed answers ignore case, accents and punctuation, expand `St` to `Saint`, and
+tolerate a typo or two in longer names. Best scores are kept per settings
+combination in the browser's local storage.
 
 ## Running it
 

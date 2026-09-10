@@ -22,10 +22,19 @@
     <h1>City Hunt</h1>
     <p class="sub">Find the cities on the globe.</p>
 
-    <label for="scope">Region</label>
-    <select id="scope"></select>
+    <label for="mode">Game</label>
+    <select id="mode">
+      <option value="click" selected>Click the city I name</option>
+      <option value="name">Name the cities I mark</option>
+    </select>
 
-    <label for="count">Cities to find</label>
+    <label for="region">World region</label>
+    <select id="region"></select>
+
+    <label for="country">Country <span class="opt">optional</span></label>
+    <select id="country"></select>
+
+    <label for="count">Cities</label>
     <select id="count">
       <option value="5" selected>5</option>
       <option value="10">10</option>
@@ -41,6 +50,17 @@
       <option value="40">A random pick of the top 40</option>
       <option value="60">A random pick of the top 60</option>
     </select>
+
+    <div id="timing-row" hidden>
+      <label for="seconds">Seconds per city</label>
+      <select id="seconds">
+        <option value="10">10</option>
+        <option value="15" selected>15</option>
+        <option value="20">20</option>
+        <option value="30">30</option>
+        <option value="0">No limit</option>
+      </select>
+    </div>
 
     <label class="check"><input type="checkbox" id="capitals"> Capital cities only</label>
 
@@ -69,11 +89,18 @@
 <div id="hint" class="toast" hidden>Tap the map to drop your pin</div>
 
 <footer id="controls" hidden>
+  <!-- click mode -->
   <button id="guess" class="primary" disabled>Guess</button>
   <button id="next" class="primary" hidden>Next</button>
+  <!-- name mode -->
+  <div id="answer-row" hidden>
+    <input id="answer" type="text" placeholder="Type a city name"
+           autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false">
+    <button id="giveup" class="secondary inline">Finish</button>
+  </div>
 </footer>
 
-<!-- ---------- Round result ---------- -->
+<!-- ---------- Round result (click mode) ---------- -->
 <section id="result" class="card" hidden>
   <div id="result-city"></div>
   <div id="result-dist" class="big"></div>

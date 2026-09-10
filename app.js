@@ -1,7 +1,12 @@
 'use strict';
 
 /* ------------------------------------------------------------------ *
- * City Hunt — a configurable "find the city on the globe" game.
+ * City Hunt — a configurable geography drill on a satellite globe.
+ *
+ *   click mode — a city is named, you click where it is.
+ *   name mode  — the cities are marked in red, you type their names
+ *                against the clock, turning them green.
+ *
  * Data: data/cities.json (built by tools/build-data.js from GeoNames).
  * ------------------------------------------------------------------ */
 
@@ -13,11 +18,13 @@ const CONTINENT_ORDER = ['AF', 'AS', 'EU', 'NA', 'SA', 'OC'];
 
 const $ = (id) => document.getElementById(id);
 const el = {
-  setup: $('setup'), scope: $('scope'), count: $('count'), pool: $('pool'),
+  setup: $('setup'), mode: $('mode'), region: $('region'), country: $('country'),
+  count: $('count'), pool: $('pool'), seconds: $('seconds'), timingRow: $('timing-row'),
   capitals: $('capitals'), start: $('start'), note: $('setup-note'),
   hud: $('hud'), quit: $('quit'), cityName: $('city-name'), citySub: $('city-sub'),
   score: $('score'), progress: $('progress'), hint: $('hint'),
   controls: $('controls'), guess: $('guess'), next: $('next'),
+  answerRow: $('answer-row'), answer: $('answer'), giveup: $('giveup'),
   result: $('result'), resultCity: $('result-city'), resultDist: $('result-dist'),
   resultPts: $('result-pts'), resultPop: $('result-pop'),
   summary: $('summary'), finalScore: $('final-score'), best: $('best'),
@@ -43,7 +50,7 @@ function haversine(a, b) {
   return 2 * R_EARTH * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
-// Bounding box that copes with countries straddling the antimeridian.
+// Bounding box that copes with regions straddling the antimeridian.
 function boundsOf(cities) {
   const lats = cities.map((c) => c.lat);
   const plain = cities.map((c) => c.lon);
@@ -60,77 +67,114 @@ function diagonalKm(b) {
   return haversine({ lat: b.south, lon: b.west }, { lat: b.north, lon: b.east });
 }
 
-// Keep a longitude within half a globe of a reference, so lines drawn
-// between two points take the short way round.
+// Keep a longitude within half a globe of a reference, so a line drawn
+// between two points takes the short way round.
 function nearLon(lon, ref) {
   while (lon - ref > 180) lon -= 360;
   while (ref - lon > 180) lon += 360;
   return lon;
 }
 
-/* ---------------------------- Setup UI --------------------------- */
+/* --------------------------- Name matching ----------------------- */
 
-function buildScopeSelect() {
-  const frag = document.createDocumentFragment();
-
-  const world = new Option('The whole world', 'world', true, true);
-  frag.appendChild(world);
-
-  const gc = document.createElement('optgroup');
-  gc.label = 'Continents';
-  for (const code of CONTINENT_ORDER) {
-    gc.appendChild(new Option(CONTINENT_NAMES[code], 'c:' + code));
-  }
-  frag.appendChild(gc);
-
-  const byContinent = {};
-  for (const [iso, c] of Object.entries(DATA.countries)) {
-    (byContinent[c.c] ||= []).push([iso, c.n]);
-  }
-  for (const code of CONTINENT_ORDER) {
-    const list = (byContinent[code] || []).sort((a, b) => a[1].localeCompare(b[1]));
-    if (!list.length) continue;
-    const g = document.createElement('optgroup');
-    g.label = CONTINENT_NAMES[code];
-    for (const [iso, name] of list) g.appendChild(new Option(name, 'k:' + iso));
-    frag.appendChild(g);
-  }
-
-  el.scope.appendChild(frag);
+function normalise(s) {
+  return s
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')   // strip diacritics
+    .toLowerCase()
+    .replace(/\bst\.?\b/g, 'saint')
+    .replace(/[^a-z0-9]+/g, '');
 }
 
-function scopeCities(scope) {
+// Damerau-free Levenshtein, capped for speed.
+function editDistance(a, b) {
+  if (Math.abs(a.length - b.length) > 2) return 99;
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i];
+    for (let j = 1; j <= b.length; j++) {
+      row[j] = Math.min(
+        prev[j] + 1,
+        row[j - 1] + 1,
+        prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
+    }
+    prev = row;
+  }
+  return prev[b.length];
+}
+
+// A typed answer matches if it is the same once normalised, or close
+// enough that only a slip of the finger separates them.
+function matches(typed, name) {
+  const a = normalise(typed);
+  const b = normalise(name);
+  if (!a) return false;
+  if (a === b) return true;
+  const tol = b.length >= 12 ? 2 : b.length >= 6 ? 1 : 0;
+  return tol > 0 && editDistance(a, b) <= tol;
+}
+
+/* ---------------------------- Setup UI --------------------------- */
+
+function buildRegionSelect() {
+  el.region.appendChild(new Option('The whole world', 'world', true, true));
+  for (const code of CONTINENT_ORDER) {
+    el.region.appendChild(new Option(CONTINENT_NAMES[code], code));
+  }
+}
+
+function countriesIn(region) {
+  return Object.entries(DATA.countries)
+    .filter(([, c]) => region === 'world' || c.c === region)
+    .sort((a, b) => a[1].n.localeCompare(b[1].n));
+}
+
+function buildCountrySelect() {
+  const region = el.region.value;
+  const label = region === 'world'
+    ? 'Everywhere' : `All of ${CONTINENT_NAMES[region]}`;
+  el.country.innerHTML = '';
+  el.country.appendChild(new Option(label, '', true, true));
+  for (const [iso, c] of countriesIn(region)) {
+    el.country.appendChild(new Option(c.n, iso));
+  }
+}
+
+function scopeCities(cfg) {
   const out = [];
   const add = (iso) => {
     for (const [name, lat, lon, pop, cap] of DATA.countries[iso].cities) {
       out.push({ name, lat, lon, pop, cap: !!cap, country: DATA.countries[iso].n });
     }
   };
-  if (scope === 'world') Object.keys(DATA.countries).forEach(add);
-  else if (scope.startsWith('c:')) {
-    const code = scope.slice(2);
-    Object.entries(DATA.countries).forEach(([iso, c]) => { if (c.c === code) add(iso); });
-  } else add(scope.slice(2));
+  if (cfg.country) add(cfg.country);
+  else countriesIn(cfg.region).forEach(([iso]) => add(iso));
   return out;
 }
 
 function currentConfig() {
   return {
-    scope: el.scope.value,
-    scopeLabel: el.scope.selectedOptions[0].textContent,
+    mode: el.mode.value,
+    region: el.region.value,
+    country: el.country.value,
+    scopeLabel: el.country.value
+      ? el.country.selectedOptions[0].textContent
+      : el.region.selectedOptions[0].textContent,
     count: +el.count.value,
     pool: +el.pool.value,
+    seconds: +el.seconds.value,
     capitals: el.capitals.checked,
   };
 }
 
 function availableFor(cfg) {
-  let list = scopeCities(cfg.scope);
+  let list = scopeCities(cfg);
   if (cfg.capitals) list = list.filter((c) => c.cap);
   return list.sort((a, b) => b.pop - a.pop);
 }
 
 function refreshNote() {
+  el.timingRow.hidden = el.mode.value !== 'name';
   const cfg = currentConfig();
   const n = availableFor(cfg).length;
   if (n < 2) {
@@ -194,7 +238,7 @@ function initMap() {
   });
 
   map.on('click', (e) => {
-    if (!game || game.locked) return;
+    if (!game || game.cfg.mode !== 'click' || game.locked) return;
     placeGuess(e.lngLat);
   });
 }
@@ -223,26 +267,30 @@ function placeGuess(lngLat) {
   el.guess.disabled = false;
 }
 
-function clearMarkers() {
+function clearMap() {
   if (guessMarker) { guessMarker.remove(); guessMarker = null; }
   if (actualMarker) { actualMarker.remove(); actualMarker = null; }
+  if (game && game.markers) { game.markers.forEach((m) => m.remove()); game.markers = []; }
   const src = map.getSource('link');
   if (src) src.setData({ type: 'FeatureCollection', features: [] });
 }
 
-function viewScope() {
-  if (game.cfg.scope === 'world') {
-    map.easeTo({ center: [0, 20], zoom: 0.6, duration: 900 });
-    return;
-  }
-  const b = game.bounds;
+function fitTo(bounds, padding, maxZoom) {
   map.fitBounds(
-    [[b.west, b.south], [b.east, b.north]],
-    { padding: { top: 120, bottom: 130, left: 40, right: 40 }, duration: 900, maxZoom: 9 },
+    [[bounds.west, bounds.south], [bounds.east, bounds.north]],
+    { padding, duration: 900, maxZoom: maxZoom || 9 },
   );
 }
 
-/* ----------------------------- Game ------------------------------ */
+function viewScope() {
+  if (game.cfg.region === 'world' && !game.cfg.country) {
+    map.easeTo({ center: [0, 20], zoom: 0.6, duration: 900 });
+  } else {
+    fitTo(game.bounds, { top: 120, bottom: 130, left: 40, right: 40 });
+  }
+}
+
+/* ----------------------------- Shared ---------------------------- */
 
 function shuffle(a) {
   for (let i = a.length - 1; i > 0; i--) {
@@ -252,6 +300,14 @@ function shuffle(a) {
   return a;
 }
 
+function bestKey(cfg) {
+  return `cityhunt:${cfg.mode}:${cfg.region}:${cfg.country}:${cfg.count}:${cfg.pool}:${cfg.capitals ? 1 : 0}`;
+}
+
+function km(d) {
+  return d < 10 ? `${d.toFixed(1)} km` : `${Math.round(d).toLocaleString('en-GB')} km`;
+}
+
 function startGame(cfg) {
   const ranked = availableFor(cfg);
   const count = Math.min(cfg.count, ranked.length);
@@ -259,28 +315,76 @@ function startGame(cfg) {
   const targets = shuffle(ranked.slice(0, Math.min(depth, ranked.length))).slice(0, count);
 
   const bounds = boundsOf(ranked.slice(0, Math.max(depth, 10)));
-  const diag = cfg.scope === 'world' ? 20000 : Math.max(50, diagonalKm(bounds));
+  const worldwide = cfg.region === 'world' && !cfg.country;
+  const diag = worldwide ? 20000 : Math.max(50, diagonalKm(bounds));
 
   game = {
-    cfg, targets, bounds,
+    cfg, targets, bounds, markers: [],
     // Scoring falls off exponentially with distance; the scale is tied to the
     // size of the region so a country round demands more precision than a
     // world round. 1000 points for a bullseye, ~370 at one scale length.
     k: Math.max(20, diag / 14),
-    i: 0, score: 0, locked: false, results: [],
+    i: 0, score: 0, locked: false, results: [], found: 0,
   };
 
   el.setup.hidden = true;
   el.summary.hidden = true;
   el.hud.hidden = false;
   el.controls.hidden = false;
-  nextRound();
+  clearMap();
+
+  if (cfg.mode === 'click') startClickRound();
+  else startNameRound();
 }
 
-function nextRound() {
-  clearMarkers();
+function finishGame(lines, scored, maxScore) {
+  stopClock();
+  el.finalScore.textContent = `${scored.toLocaleString('en-GB')} / ${maxScore.toLocaleString('en-GB')}`;
+
+  let prev = null;
+  try { prev = Number(localStorage.getItem(bestKey(game.cfg))) || null; } catch (e) { /* ignore */ }
+  if (prev === null || scored > prev) {
+    try { localStorage.setItem(bestKey(game.cfg), String(scored)); } catch (e) { /* ignore */ }
+    el.best.textContent = prev === null
+      ? 'First run at these settings.'
+      : `New best — was ${prev.toLocaleString('en-GB')}.`;
+  } else {
+    el.best.textContent = `Your best here: ${prev.toLocaleString('en-GB')}.`;
+  }
+
+  el.breakdown.innerHTML = '';
+  for (const line of lines) {
+    const li = document.createElement('li');
+    li.innerHTML = line;
+    el.breakdown.appendChild(li);
+  }
+
+  el.hud.hidden = true;
+  el.controls.hidden = true;
+  el.result.hidden = true;
+  el.hint.hidden = true;
+  el.summary.hidden = false;
+}
+
+function toSetup() {
+  stopClock();
+  clearMap();
+  game = null;
+  el.hud.hidden = true;
+  el.controls.hidden = true;
+  el.result.hidden = true;
+  el.hint.hidden = true;
+  el.summary.hidden = true;
+  el.setup.hidden = false;
+}
+
+/* --------------------------- Click mode -------------------------- */
+
+function startClickRound() {
+  clearMap();
   game.locked = false;
   el.result.hidden = true;
+  el.answerRow.hidden = true;
   el.next.hidden = true;
   el.guess.hidden = false;
   el.guess.disabled = true;
@@ -288,7 +392,7 @@ function nextRound() {
 
   const c = game.targets[game.i];
   el.cityName.textContent = c.name;
-  el.citySub.textContent = game.cfg.scope.startsWith('k:') ? '' : c.country;
+  el.citySub.textContent = game.cfg.country ? '' : c.country;
   el.score.textContent = game.score;
   el.progress.textContent = `${game.i + 1}/${game.targets.length}`;
   viewScope();
@@ -316,9 +420,7 @@ function submitGuess() {
   });
 
   el.resultCity.textContent = target.name;
-  el.resultDist.textContent = dist < 10
-    ? `${dist.toFixed(1)} km away`
-    : `${Math.round(dist).toLocaleString('en-GB')} km away`;
+  el.resultDist.textContent = `${km(dist)} away`;
   el.resultPts.textContent = `+${pts} points`;
   el.resultPop.textContent = `Population ${target.pop.toLocaleString('en-GB')}`;
   el.result.hidden = false;
@@ -327,77 +429,167 @@ function submitGuess() {
   el.next.hidden = false;
   el.next.textContent = game.i === game.targets.length - 1 ? 'Finish' : 'Next city';
 
-  const pad = { top: 130, bottom: 230, left: 50, right: 50 };
-  map.fitBounds(
-    [[Math.min(g.lng, tLon), Math.min(g.lat, target.lat)],
-     [Math.max(g.lng, tLon), Math.max(g.lat, target.lat)]],
-    { padding: pad, duration: 900, maxZoom: 9 },
+  fitTo(
+    {
+      west: Math.min(g.lng, tLon), east: Math.max(g.lng, tLon),
+      south: Math.min(g.lat, target.lat), north: Math.max(g.lat, target.lat),
+    },
+    { top: 130, bottom: 230, left: 50, right: 50 },
   );
 }
 
-function bestKey(cfg) {
-  return `cityhunt:${cfg.scope}:${cfg.count}:${cfg.pool}:${cfg.capitals ? 1 : 0}`;
+function finishClickGame() {
+  const lines = game.results.map(
+    (r) => `${r.name} — <span class="d">${km(r.dist)}</span> — ${r.pts}`,
+  );
+  finishGame(lines, game.score, game.targets.length * 1000);
 }
 
-function finish() {
-  const max = game.targets.length * 1000;
-  el.finalScore.textContent = `${game.score.toLocaleString('en-GB')} / ${max.toLocaleString('en-GB')}`;
+/* ---------------------------- Name mode -------------------------- */
 
-  let prev = null;
-  try { prev = Number(localStorage.getItem(bestKey(game.cfg))) || null; } catch (e) { /* ignore */ }
-  if (prev === null || game.score > prev) {
-    try { localStorage.setItem(bestKey(game.cfg), String(game.score)); } catch (e) { /* ignore */ }
-    el.best.textContent = prev === null ? 'First run at these settings.' : `New best — was ${prev.toLocaleString('en-GB')}.`;
+let clockId = null;
+
+function stopClock() {
+  if (clockId) { clearInterval(clockId); clockId = null; }
+}
+
+function formatClock(s) {
+  const m = Math.floor(s / 60);
+  return `${m}:${String(s % 60).padStart(2, '0')}`;
+}
+
+function startNameRound() {
+  game.locked = false;
+  game.found = 0;
+  game.solved = new Set();
+  el.result.hidden = true;
+  el.hint.hidden = true;
+  el.guess.hidden = true;
+  el.next.hidden = true;
+  el.answerRow.hidden = false;
+  el.answer.value = '';
+
+  // Red dot for every city to be named.
+  game.markers = game.targets.map((c) =>
+    new maplibregl.Marker({ element: makePin('target') })
+      .setLngLat([c.lon, c.lat]).addTo(map));
+
+  game.bounds = boundsOf(game.targets);
+  fitTo(game.bounds, { top: 120, bottom: 150, left: 45, right: 45 });
+
+  updateNameHud();
+
+  if (game.cfg.seconds > 0) {
+    game.left = game.cfg.seconds * game.targets.length;
+    clockId = setInterval(() => {
+      game.left -= 1;
+      updateNameHud();
+      if (game.left <= 0) finishNameGame(true);
+    }, 1000);
   } else {
-    el.best.textContent = `Your best here: ${prev.toLocaleString('en-GB')}.`;
+    game.left = null;
   }
 
-  el.breakdown.innerHTML = '';
-  for (const r of game.results) {
-    const li = document.createElement('li');
-    const d = r.dist < 10 ? `${r.dist.toFixed(1)} km` : `${Math.round(r.dist).toLocaleString('en-GB')} km`;
-    li.innerHTML = `${r.name} — <span class="d">${d}</span> — ${r.pts}`;
-    el.breakdown.appendChild(li);
-  }
-
-  el.hud.hidden = true;
-  el.controls.hidden = true;
-  el.result.hidden = true;
-  el.hint.hidden = true;
-  el.summary.hidden = false;
+  el.answer.focus();
 }
 
-function toSetup() {
-  game = null;
-  clearMarkers();
-  el.hud.hidden = true;
-  el.controls.hidden = true;
-  el.result.hidden = true;
-  el.hint.hidden = true;
-  el.summary.hidden = true;
-  el.setup.hidden = false;
+function updateNameHud() {
+  el.cityName.textContent = `${game.found} / ${game.targets.length}`;
+  el.citySub.textContent = 'named';
+  el.score.textContent = game.left === null ? '∞' : formatClock(Math.max(0, game.left));
+  el.score.classList.toggle('urgent', game.left !== null && game.left <= 10);
+  el.progress.textContent = game.left === null ? 'no limit' : 'left';
+}
+
+function trySubmitName() {
+  const typed = el.answer.value.trim();
+  if (!typed || game.locked) return;
+
+  const hit = game.targets.findIndex(
+    (c, i) => !game.solved.has(i) && matches(typed, c.name));
+  if (hit === -1) {
+    el.answer.classList.remove('wrong');
+    void el.answer.offsetWidth;   // restart the shake
+    el.answer.classList.add('wrong');
+    return;
+  }
+
+  game.solved.add(hit);
+  game.found += 1;
+  el.answer.value = '';
+  el.answer.classList.remove('wrong');
+
+  const c = game.targets[hit];
+  game.markers[hit].remove();
+  game.markers[hit] = new maplibregl.Marker({ element: makePin('actual', c.name) })
+    .setLngLat([c.lon, c.lat]).addTo(map);
+
+  updateNameHud();
+  if (game.found === game.targets.length) finishNameGame(false);
+}
+
+function finishNameGame(timedOut) {
+  stopClock();
+  game.locked = true;
+
+  // Reveal whatever was missed, in amber.
+  game.targets.forEach((c, i) => {
+    if (game.solved.has(i)) return;
+    game.markers[i].remove();
+    game.markers[i] = new maplibregl.Marker({ element: makePin('missed', c.name) })
+      .setLngLat([c.lon, c.lat]).addTo(map);
+  });
+
+  const lines = game.targets.map((c, i) => (
+    game.solved.has(i)
+      ? `${c.name}`
+      : `<span class="miss">${c.name}</span> <span class="d">— missed</span>`
+  ));
+  if (timedOut) lines.unshift('<span class="d">Time.</span>');
+
+  finishGame(lines, game.found * 1000, game.targets.length * 1000);
 }
 
 /* ----------------------------- Wiring ---------------------------- */
 
 el.guess.addEventListener('click', submitGuess);
 el.next.addEventListener('click', () => {
-  if (game.i === game.targets.length - 1) finish();
-  else { game.i++; nextRound(); }
+  if (game.i === game.targets.length - 1) finishClickGame();
+  else { game.i++; startClickRound(); }
 });
+el.answer.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); trySubmitName(); }
+});
+el.answer.addEventListener('input', () => el.answer.classList.remove('wrong'));
+el.giveup.addEventListener('click', () => finishNameGame(false));
+
 el.start.addEventListener('click', () => startGame(currentConfig()));
 el.again.addEventListener('click', () => startGame(game ? game.cfg : currentConfig()));
 el.change.addEventListener('click', toSetup);
 el.quit.addEventListener('click', toSetup);
-for (const c of [el.scope, el.count, el.pool, el.capitals]) {
+
+el.region.addEventListener('change', () => { buildCountrySelect(); refreshNote(); });
+for (const c of [el.mode, el.country, el.count, el.pool, el.seconds, el.capitals]) {
   c.addEventListener('change', refreshNote);
+}
+
+// Keep the answer box above the on-screen keyboard.
+if (window.visualViewport) {
+  const reposition = () => {
+    const vv = window.visualViewport;
+    const hidden = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    el.controls.style.transform = `translateY(${-hidden}px)`;
+  };
+  window.visualViewport.addEventListener('resize', reposition);
+  window.visualViewport.addEventListener('scroll', reposition);
 }
 
 fetch('data/cities.json')
   .then((r) => r.json())
   .then((d) => {
     DATA = d;
-    buildScopeSelect();
+    buildRegionSelect();
+    buildCountrySelect();
     refreshNote();
     initMap();
   })
