@@ -1,0 +1,195 @@
+:root {
+  --bg: #0b1220;
+  --panel: rgba(11, 18, 32, 0.94);
+  --ink: #f2f5fa;
+  --muted: #9fb0c8;
+  --accent: #4da3ff;
+  --good: #47d18a;
+  --warn: #ffb454;
+  --line: rgba(255, 255, 255, 0.14);
+  --pad: max(14px, env(safe-area-inset-left));
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font: 17px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+#map { position: absolute; inset: 0; }
+
+/* ---------- Full-screen panels ---------- */
+.panel {
+  position: absolute; inset: 0; z-index: 20;
+  background: var(--panel);
+  backdrop-filter: blur(8px);
+  overflow-y: auto;
+  display: flex; align-items: center; justify-content: center;
+}
+.panel[hidden] { display: none; }
+
+.panel-inner {
+  width: 100%; max-width: 440px;
+  padding: 28px var(--pad) calc(28px + env(safe-area-inset-bottom));
+}
+
+h1 { font-size: 2.1rem; margin: 0 0 4px; letter-spacing: -0.02em; }
+h2 { font-size: 1.7rem; margin: 0 0 12px; }
+.sub { margin: 0 0 26px; color: var(--muted); font-size: 1.05rem; }
+
+label {
+  display: block;
+  margin: 18px 0 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+select {
+  width: 100%;
+  padding: 13px 14px;
+  font-size: 1.05rem;
+  font-family: inherit;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  appearance: none;
+}
+select:focus { outline: 2px solid var(--accent); }
+option { color: #111; }
+
+label.check {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 20px;
+  text-transform: none; letter-spacing: 0; font-size: 1.05rem;
+  color: var(--ink); font-weight: 500;
+}
+label.check input { width: 22px; height: 22px; accent-color: var(--accent); }
+
+.note { min-height: 1.4em; margin: 16px 0 0; font-size: 0.95rem; color: var(--warn); }
+
+button {
+  font-family: inherit;
+  font-size: 1.15rem;
+  font-weight: 600;
+  border: 0;
+  border-radius: 12px;
+  padding: 15px 20px;
+  cursor: pointer;
+}
+button.primary { width: 100%; margin-top: 18px; background: var(--accent); color: #04121f; }
+button.primary:disabled { background: rgba(255, 255, 255, 0.12); color: var(--muted); }
+button.secondary {
+  width: 100%; margin-top: 10px;
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--line);
+}
+button.icon {
+  background: none; color: var(--muted);
+  font-size: 1.9rem; line-height: 1; padding: 4px 10px;
+}
+
+.credit { margin: 22px 0 0; font-size: 0.85rem; color: var(--muted); }
+.credit a { color: var(--muted); }
+
+/* ---------- HUD ---------- */
+#hud {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 10;
+  padding: calc(env(safe-area-inset-top) + 8px) var(--pad) 12px;
+  background: linear-gradient(#0b1220f0 60%, #0b122000);
+}
+#hud[hidden] { display: none; }
+
+.hud-row { display: flex; align-items: center; gap: 10px; }
+.prompt { flex: 1; min-width: 0; text-align: center; }
+#city-name { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.01em; }
+.muted { color: var(--muted); font-size: 0.92rem; }
+.tally { text-align: right; min-width: 62px; }
+#score { font-size: 1.35rem; font-weight: 700; }
+
+/* ---------- Controls ---------- */
+#controls {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 10;
+  padding: 12px var(--pad) calc(12px + env(safe-area-inset-bottom));
+  background: linear-gradient(#0b122000, #0b1220f0 55%);
+}
+#controls[hidden] { display: none; }
+#controls button { margin-top: 0; }
+
+/* ---------- Round result card ---------- */
+.card {
+  position: absolute; z-index: 11;
+  left: var(--pad); right: var(--pad);
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  text-align: center;
+}
+.card[hidden] { display: none; }
+#result-city { font-size: 1.15rem; font-weight: 600; }
+.big { font-size: 2rem; font-weight: 700; margin-top: 2px; }
+.pts { font-size: 1.15rem; font-weight: 600; color: var(--good); }
+
+/* ---------- Toast ---------- */
+.toast {
+  position: absolute; z-index: 11;
+  left: 50%; transform: translateX(-50%);
+  bottom: calc(88px + env(safe-area-inset-bottom));
+  padding: 9px 16px;
+  font-size: 0.95rem;
+  border-radius: 999px;
+  background: rgba(11, 18, 32, 0.85);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  pointer-events: none;
+}
+.toast[hidden] { display: none; }
+
+/* ---------- Summary ---------- */
+.final { font-size: 2.6rem; font-weight: 700; }
+#breakdown {
+  margin: 18px 0 0; padding-left: 1.4em;
+  font-size: 1rem;
+}
+#breakdown li { margin-bottom: 6px; }
+#breakdown .d { color: var(--muted); }
+
+/* ---------- Map markers ---------- */
+.pin {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45);
+}
+.pin.guess { background: var(--accent); }
+.pin.actual { background: var(--good); }
+
+.city-label {
+  position: absolute;
+  left: 50%; transform: translateX(-50%);
+  top: 26px;
+  padding: 3px 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+  border-radius: 6px;
+  background: rgba(11, 18, 32, 0.85);
+  border: 1px solid var(--line);
+}
+
+/* Keep the imagery attribution clear of the bottom button bar. */
+.maplibregl-ctrl-bottom-right {
+  z-index: 12;
+  bottom: calc(74px + env(safe-area-inset-bottom));
+}
+.maplibregl-ctrl-attrib { font-size: 11px; }
