@@ -10,7 +10,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%8D%3C/text%3E%3C/svg%3E">
 <title>City Hunt</title>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 
@@ -26,6 +26,7 @@
     <select id="mode">
       <option value="click" selected>Click the city I name</option>
       <option value="name">Name the cities I mark</option>
+      <option value="draw">Draw the country I name</option>
     </select>
 
     <label for="region">World region</label>
@@ -34,7 +35,20 @@
     <label for="country">Country <span class="opt">optional</span></label>
     <select id="country"></select>
 
-    <label for="count">Cities</label>
+    <div id="state-row" hidden>
+      <label for="state">State / province <span class="opt">optional</span></label>
+      <select id="state"></select>
+    </div>
+
+    <div id="level-row" hidden>
+      <label for="level">Draw</label>
+      <select id="level">
+        <option value="country" selected>The country</option>
+        <option value="states">Its states / provinces</option>
+      </select>
+    </div>
+
+    <label for="count" id="count-label">Cities</label>
     <select id="count">
       <option value="5" selected>5</option>
       <option value="10">10</option>
@@ -62,7 +76,7 @@
       </select>
     </div>
 
-    <label class="check"><input type="checkbox" id="capitals"> Capital cities only</label>
+    <label class="check" id="capitals-label"><input type="checkbox" id="capitals"> Capital cities only</label>
 
     <p id="setup-note" class="note"></p>
 
@@ -98,6 +112,13 @@
            autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false">
     <button id="giveup" class="secondary inline">Finish</button>
   </div>
+  <!-- draw mode -->
+  <div id="draw-row" hidden>
+    <button id="tool-move" class="tool" title="Move" aria-label="Move"><svg viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg></button>
+    <button id="tool-pen" class="tool" title="Pen" aria-label="Pen"><svg viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+    <button id="undo" class="tool" title="Undo" aria-label="Undo" disabled><svg viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg></button>
+    <button id="submit" class="go" title="Submit" aria-label="Submit" disabled><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></button>
+  </div>
 </footer>
 
 <!-- ---------- Round result (click mode) ---------- -->
@@ -121,6 +142,6 @@
 </section>
 
 <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
-<script src="app.js"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>

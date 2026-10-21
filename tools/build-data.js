@@ -5,6 +5,8 @@
  * Sources: GeoNames (CC BY 4.0) via the `all-the-cities` package; ISO country
  * names and continents via `countries-list`.
  *
+ * Corrections (districts removed, capitals fixed) come from city-fixes.json.
+ *
  * Usage: node build-data.js ../data/cities.json
  */
 const fs = require('fs');
@@ -62,6 +64,56 @@ for (const [iso, bucket] of byCountry) {
       c.capital ? 1 : 0,
     ]),
   };
+}
+
+// Curated corrections: districts GeoNames lists as cities, missing capitals.
+const fixes = require('./city-fixes.json');
+for (const [iso, names] of Object.entries(fixes.exclude)) {
+  const country = out.countries[iso];
+  if (country) country.cities = country.cities.filter((r) => !names.includes(r[0]));
+}
+for (const [iso, name] of Object.entries(fixes.capitals)) {
+  const row = out.countries[iso] && out.countries[iso].cities.find((r) => r[0] === name);
+  if (row) row[4] = 1;
+}
+for (const [iso, [name, lat, lon, pop]] of Object.entries(fixes.add)) {
+  const country = out.countries[iso];
+  if (!country) continue;
+  let row = country.cities.find((r) => r[0] === name);
+  if (!row) { row = [name, lat, lon, pop, 1]; country.cities.push(row); }
+  row[4] = 1;
+  country.cities.sort((a, b) => b[3] - a[3]);
+}
+
+// City-proper figures, before the metro-area substitution, for build-metro.py.
+const rawPath = path.join(__dirname, 'src', 'cities-geonames.json');
+fs.mkdirSync(path.dirname(rawPath), { recursive: true });
+fs.writeFileSync(rawPath, JSON.stringify(out));
+
+// Metro-area populations (tools/build-metro.py), where a city is the core of one.
+let metro = {};
+try { metro = require('./metro-pop.json'); } catch (e) { /* not built yet */ }
+for (const [iso, pops] of Object.entries(metro)) {
+  const country = out.countries[iso];
+  if (!country) continue;
+  for (const row of country.cities) if (pops[row[0]] !== undefined) row[3] = pops[row[0]];
+  country.cities.sort((a, b) => b[3] - a[3]);
+}
+
+// English names, with the GeoNames name kept as an accepted alternative (row[5]);
+// then other well-known alternative names.
+for (const [iso, names] of Object.entries(fixes.rename || {})) {
+  const country = out.countries[iso];
+  if (!country) continue;
+  for (const row of country.cities) {
+    if (names[row[0]]) { row[5] = row[0]; row[0] = names[row[0]]; }
+  }
+}
+
+for (const [iso, names] of Object.entries(fixes.alias || {})) {
+  const country = out.countries[iso];
+  if (!country) continue;
+  for (const row of country.cities) if (names[row[0]]) row[5] = names[row[0]];
 }
 
 const dest = process.argv[2] || path.join(__dirname, '..', 'data', 'cities.json');

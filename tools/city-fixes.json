@@ -1,0 +1,360 @@
+{
+ "exclude": {
+  "US": [
+   "Brooklyn",
+   "Queens",
+   "Manhattan",
+   "The Bronx",
+   "Staten Island"
+  ],
+  "CA": [
+   "North York",
+   "Scarborough",
+   "Etobicoke",
+   "Nepean"
+  ],
+  "TR": [
+   "Çankaya",
+   "Bağcılar",
+   "Üsküdar",
+   "Bahçelievler",
+   "Umraniye",
+   "Esenler",
+   "Sultangazi",
+   "Maltepe",
+   "Ataşehir",
+   "Şişli",
+   "Zeytinburnu",
+   "Sultanbeyli",
+   "Sancaktepe",
+   "Başakşehir",
+   "Arnavutköy",
+   "Büyükçekmece",
+   "Esenyurt",
+   "Karabağlar",
+   "Muratpaşa",
+   "Merkezefendi",
+   "Pendik",
+   "Kadıköy",
+   "Kartal",
+   "Küçükçekmece",
+   "Avcılar",
+   "Kağıthane",
+   "Bakırköy",
+   "Beylikdüzü",
+   "Gaziosmanpaşa",
+   "Bayrampaşa",
+   "Güngören",
+   "Sarıyer",
+   "Beykoz",
+   "Eyüp",
+   "Fatih",
+   "Beyoğlu",
+   "Tuzla",
+   "Çekmeköy",
+   "Keçiören",
+   "Yenimahalle",
+   "Mamak",
+   "Etimesgut",
+   "Sincan",
+   "Altındağ",
+   "Buca",
+   "Bornova",
+   "Karşıyaka",
+   "Konak",
+   "Bayraklı",
+   "Çiğli",
+   "Gaziemir",
+   "Konyaaltı",
+   "Kepez"
+  ],
+  "MX": [
+   "Iztapalapa",
+   "Gustavo Adolfo Madero",
+   "Coyoacán",
+   "Tlalpan",
+   "Cuauhtémoc",
+   "Azcapotzalco",
+   "Xochimilco",
+   "Iztacalco",
+   "Miguel Hidalgo",
+   "Benito Juarez",
+   "Álvaro Obregón",
+   "Venustiano Carranza",
+   "Magdalena Contreras",
+   "Cuajimalpa de Morelos",
+   "Milpa Alta",
+   "Tláhuac"
+  ],
+  "PL": [
+   "Mokotów",
+   "Praga Południe",
+   "Ursynów",
+   "Wola",
+   "Bielany",
+   "Praga Północ",
+   "Targówek",
+   "Białołęka",
+   "Bemowo",
+   "Ursus",
+   "Włochy",
+   "Rembertów",
+   "Wawer",
+   "Wesoła",
+   "Śródmieście",
+   "Żoliborz",
+   "Ochota"
+  ],
+  "ES": [
+   "Ciudad Lineal"
+  ],
+  "GB": [
+   "Islington",
+   "City of Westminster",
+   "Croydon",
+   "Sutton",
+   "Barnet",
+   "Ealing",
+   "Brent",
+   "Hackney",
+   "Lambeth",
+   "Southwark",
+   "Tower Hamlets",
+   "Newham",
+   "Haringey",
+   "Lewisham",
+   "Greenwich",
+   "Hounslow",
+   "Hillingdon",
+   "Enfield",
+   "Bromley",
+   "Bexley",
+   "Havering",
+   "Redbridge",
+   "Wandsworth",
+   "Camden",
+   "Harrow",
+   "Kensington and Chelsea",
+   "Hammersmith and Fulham",
+   "Waltham Forest",
+   "Barking and Dagenham",
+   "Kingston upon Thames",
+   "Richmond upon Thames",
+   "Merton"
+  ],
+  "HK": [
+   "Kowloon",
+   "Tsuen Wan"
+  ],
+  "CU": [
+   "Arroyo Naranjo",
+   "San Miguel del Padrón"
+  ],
+  "EC": [
+   "Eloy Alfaro"
+  ],
+  "BD": [
+   "Paltan"
+  ],
+  "OM": [
+   "Bawshar"
+  ],
+  "VE": [
+   "Petare",
+   "Baruta"
+  ],
+  "RS": [
+   "Zemun"
+  ],
+  "JP": [
+   "Yono"
+  ],
+  "CD": [
+   "Masina"
+  ],
+  "CI": [
+   "Abobo"
+  ],
+  "DZ": [
+   "Bab Ezzouar"
+  ],
+  "GN": [
+   "Camayenne"
+  ],
+  "SA": [
+   "Sulţānah"
+  ],
+  "IR": [
+   "Pasragad Branch"
+  ],
+  "MY": [
+   "Kampung Baru Subang"
+  ],
+  "PH": [
+   "Budta",
+   "Malingao",
+   "Mansilingan",
+   "Santol",
+   "Panalanoy",
+   "Libertad",
+   "Mantampay"
+  ]
+ },
+ "capitals": {
+  "IN": "Delhi",
+  "IL": "Jerusalem",
+  "PS": "Ramallah",
+  "EH": "Laayoune",
+  "MS": "Brades"
+ },
+ "add": {
+  "BM": [
+   "Hamilton",
+   32.2949,
+   -64.7814,
+   854
+  ],
+  "FM": [
+   "Palikir",
+   6.9248,
+   158.1611,
+   6647
+  ],
+  "PW": [
+   "Ngerulmud",
+   7.5006,
+   134.6242,
+   271
+  ]
+ },
+ "rename": {
+  "DE": {
+   "Köln": "Cologne",
+   "Nürnberg": "Nuremberg",
+   "Hannover": "Hanover",
+   "Frankfurt am Main": "Frankfurt"
+  },
+  "SE": {
+   "Göteborg": "Gothenburg"
+  },
+  "BE": {
+   "Antwerpen": "Antwerp"
+  },
+  "CH": {
+   "Genève": "Geneva"
+  },
+  "ES": {
+   "Sevilla": "Seville",
+   "Las Palmas de Gran Canaria": "Las Palmas"
+  },
+  "MA": {
+   "Fès": "Fez"
+  },
+  "MX": {
+   "León de los Aldama": "León",
+   "Acapulco de Juárez": "Acapulco",
+   "Santiago de Querétaro": "Querétaro",
+   "Heroica Matamoros": "Matamoros",
+   "Victoria de Durango": "Durango",
+   "Xalapa de Enríquez": "Xalapa",
+   "Santa María Chimalhuacán": "Chimalhuacán"
+  },
+  "BR": {
+   "Jaboatão dos Guararapes": "Jaboatão",
+   "Campos dos Goytacazes": "Campos"
+  },
+  "DO": {
+   "Santiago de los Caballeros": "Santiago"
+  },
+  "KR": {
+   "Goyang-si": "Goyang",
+   "Seongnam-si": "Seongnam",
+   "Bucheon-si": "Bucheon",
+   "Ansan-si": "Ansan",
+   "Cheongju-si": "Cheongju",
+   "Anyang-si": "Anyang",
+   "Uijeongbu-si": "Uijeongbu"
+  },
+  "JP": {
+   "Gifu-shi": "Gifu"
+  },
+  "ID": {
+   "City of Balikpapan": "Balikpapan"
+  },
+  "RU": {
+   "Rostov-na-Donu": "Rostov-on-Don",
+   "Nizhniy Novgorod": "Nizhny Novgorod"
+  },
+  "MN": {
+   "Ulan Bator": "Ulaanbaatar"
+  },
+  "KZ": {
+   "Karagandy": "Karaganda"
+  },
+  "UZ": {
+   "Andijon": "Andijan"
+  }
+ },
+ "alias": {
+  "IN": {
+   "Mumbai": "Bombay",
+   "Bengaluru": "Bangalore",
+   "Kolkata": "Calcutta",
+   "Chennai": "Madras"
+  },
+  "CN": {
+   "Beijing": "Peking",
+   "Guangzhou": "Canton"
+  },
+  "VN": {
+   "Ho Chi Minh City": "Saigon"
+  },
+  "MM": {
+   "Yangon": "Rangoon"
+  },
+  "UA": {
+   "Kyiv": "Kiev"
+  },
+  "SA": {
+   "Mecca": "Makkah"
+  },
+  "DE": {
+   "Munich": "München"
+  },
+  "NL": {
+   "The Hague": "Den Haag"
+  },
+  "CZ": {
+   "Prague": "Praha"
+  },
+  "AT": {
+   "Vienna": "Wien"
+  },
+  "IT": {
+   "Rome": "Roma",
+   "Milan": "Milano",
+   "Naples": "Napoli",
+   "Florence": "Firenze",
+   "Turin": "Torino",
+   "Genoa": "Genova"
+  },
+  "PT": {
+   "Lisbon": "Lisboa"
+  },
+  "PL": {
+   "Warsaw": "Warszawa"
+  },
+  "RS": {
+   "Belgrade": "Beograd"
+  },
+  "RO": {
+   "Bucharest": "București"
+  },
+  "DK": {
+   "Copenhagen": "København"
+  },
+  "BE": {
+   "Brussels": "Bruxelles"
+  }
+ }
+}
