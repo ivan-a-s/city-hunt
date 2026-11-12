@@ -8,24 +8,28 @@ Checked 2026-10-21.
 | City data (GeoNames, via `all-the-cities` MIT) | CC BY 4.0 | Yes, with credit (shown in the app) |
 | Country and state borders, populated places (Natural Earth) | Public domain | Yes |
 | `countries-list` | MIT | Yes |
-| **Esri World Imagery (current satellite layer)** | Esri terms | **Unresolved** |
+| Satellite imagery: EOX Sentinel-2 cloudless, 2016 mosaic | CC BY 4.0 | Yes, with credit (shown in the app) |
 
-## The blocker: imagery
+## Imagery
 
-A web search did not surface Esri's current terms for World Imagery. Older forum
-reports read them as allowing use inside Esri software only, with a paid
-ArcGIS subscription needed otherwise. Check Esri's current terms (ArcGIS
-Location Platform, free tier, API key) before showing ads or charging.
+The app uses EOX's `s2cloudless_3857` layer. EOX's own capabilities file titles it
+"Sentinel-2 cloudless layer for 2016" and states CC BY 4.0, with the credit
+"EOxCloudless https://cloudless.eox.at by EOX IT Services GmbH (Contains modified
+Copernicus Sentinel data 2016)". The app's attribution carries this.
 
-Alternative: EOX Sentinel-2 cloudless (tiles at
-`https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/{y}/{x}.jpg`,
-tested: returns imagery).
-- Per EOX's licence page, the 2016 mosaic is CC BY 4.0 (commercial use with
-  credit); 2018-2025 are CC BY-NC-SA 4.0, and commercial use needs a paid EOX
-  licence.
-- Not confirmed which year the un-dated layer above is: ask EOX
-  (cloudless@eox.at) before relying on it.
-- Resolution is 10 m, so city-level zoom is coarser than Esri's.
+- EOX's 2018-2025 mosaics are CC BY-NC-SA 4.0 and need a paid EOX licence for
+  commercial use. Do not switch to them for a monetised version.
+- The site serves its own copy of the tiles up to zoom 8 (`tiles/`: 42,138 land tiles, 380 MB, fetched
+  by `tools/fetch-tiles.py`; open-ocean tiles are skipped); CC BY 4.0 allows this with the credit. Zoom 10 would be
+  about 4.5 GB and over a million files, too big for GitHub Pages (1 GB limit): it
+  would need object storage such as Cloudflare R2.
+- Resolution is 10 m (native to zoom 14). Coastlines and
+  terrain are sharp at country zoom; cities, rivers and airports are clear at
+  city zoom.
+- Not checked: EOX's fair-use limits for heavy traffic. At scale, ask EOX
+  (cloudless@eox.at) or host the tiles yourself.
+- Esri World Imagery, used before, was dropped: its terms for commercial use
+  could not be confirmed.
 
 ## Monetisation
 
@@ -33,5 +37,6 @@ tested: returns imagery).
 - Free geography games found rely on ads or donations (Geotastic: donations
   and ads, ads removable by donating).
 - Revenue figures were not found, and nothing on Seterra.
-- Imagery licensing is the main cost and legal risk. Everything else is free
-  to use commercially with attribution.
+- Remaining to do for a public monetised version: host MapLibre yourself instead
+  of loading it from unpkg, and host the site somewhere that allows commercial
+  use (GitHub Pages is not meant for it).

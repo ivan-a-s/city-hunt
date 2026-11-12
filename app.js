@@ -48,6 +48,13 @@ for (const v of Object.values(SUBREGIONS)) v[1] = v[1].split(' ');
 const SUB_COUNTRIES = ['US', 'CA', 'AU', 'BR', 'MX', 'IN', 'CN', 'DE', 'GB'];
 const SUB = {};
 
+// Satellite tiles: our own copy up to TILE_MAXZOOM (tools/fetch-tiles.py); deeper
+// zooms are upsampled. To use EOX's server (native to zoom 14) instead, set
+// TILE_URL to 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/{y}/{x}.jpg'
+// and TILE_MAXZOOM to 14.
+const TILE_URL = 'tiles/{z}/{x}/{y}.jpg';
+const TILE_MAXZOOM = 8;
+
 const $ = (id) => document.getElementById(id);
 const el = {
   setup: $('setup'), mode: $('mode'), region: $('region'), country: $('country'),
@@ -316,10 +323,14 @@ function initMap() {
       sources: {
         sat: {
           type: 'raster',
-          tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+          // Absolute, because MapLibre fetches tiles from a worker; built by hand
+          // because new URL() would percent-encode the {z}/{x}/{y} placeholders.
+          tiles: [/^https?:/.test(TILE_URL)
+            ? TILE_URL
+            : location.href.split(/[?#]/)[0].replace(/[^/]*$/, '') + TILE_URL],
           tileSize: 256,
-          maxzoom: 19,
-          attribution: 'Imagery &copy; Esri, Maxar, Earthstar Geographics',
+          maxzoom: TILE_MAXZOOM,
+          attribution: '<a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless</a> by <a href="https://eox.at" target="_blank" rel="noopener">EOX IT Services GmbH</a> (Contains modified Copernicus Sentinel data 2016), CC BY 4.0',
         },
       },
       layers: [

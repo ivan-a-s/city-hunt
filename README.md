@@ -86,6 +86,10 @@ python tools/rebuild.py
   figure, and unmatched cities keep GeoNames'. Natural Earth's estimates are
   uneven, so some rankings look odd (Katowice tops Poland, Stuttgart and
   Mannheim outrank Hamburg).
+- `tiles/{z}/{x}/{y}.jpg`: the satellite imagery up to zoom 8 (about 600 m per
+  pixel at the equator; 42,138 land tiles, 380 MB, ocean skipped), fetched by `tools/fetch-tiles.py` from EOX's server.
+  Deeper zooms are upsampled. `TILE_URL` and `TILE_MAXZOOM` at the top of `app.js`
+  switch back to EOX's server (native to zoom 14).
 - `data/borders.json`: simplified country outlines (outer rings only, tiny islands
   dropped; overseas territories of France, Norway, the Netherlands, Denmark and
   the UK dropped), `tools/build-borders.py`.
@@ -103,8 +107,7 @@ python tools/rebuild.py
   [Natural Earth](https://www.naturalearthdata.com/), public domain.
 - State-level cities: [GeoNames](https://www.geonames.org/) `cities5000`, CC BY 4.0.
 - Map rendering: [MapLibre GL JS](https://maplibre.org/) 5.24.0, BSD-3-Clause.
-- Satellite imagery: Esri World Imagery (Esri, Maxar, Earthstar Geographics),
-  free for non-commercial use under Esri's
-  [terms](https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9).
+- Satellite imagery: [Sentinel-2 cloudless](https://s2maps.eu) 2016 mosaic by
+  [EOX](https://eox.at) (contains modified Copernicus Sentinel data), CC BY 4.0.
 
 Licence details and what blocks monetisation: `LICENCES.md`.
